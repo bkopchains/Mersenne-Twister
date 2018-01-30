@@ -4,7 +4,7 @@ from os import urandom
 import hashlib, hmac, os, sys, itertools, time
 
 def main():
-    secretkey = "aa"
+    secretkey = "3en"
     initV = urandom(len(secretkey))
 
     enc = encrypt(secretkey, initV)
