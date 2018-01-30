@@ -1,6 +1,7 @@
 #mersenne.py
 from binascii import hexlify,unhexlify
 from os import urandom
+import hashlib, hmac, os, sys, itertools, time
 
 #global vars
 N = 624
@@ -11,6 +12,10 @@ LOWER = 0x7fffffff
 m = list(range(0,N))
 mi = N
 
+chars = []
+for x in range(32, 127):
+    chars.append(chr(x))
+
 #setSeed function
 def setSeed(seed):
     global mi
@@ -19,6 +24,7 @@ def setSeed(seed):
         m[i] = (69069 * m[i-1]) & 0xffffffff
     mi = N
 
+#nextInt function
 def nextInt():
     global mi
     if mi >= N:
@@ -69,21 +75,43 @@ def decrypt(secret, initV, cipherText):
         newCipherText.append(unhexlify(format(char, '02x')))
     return newCipherText
 
+#ascii helper function
+def is_ascii(list):
+    return all(ord(item) < 128 for item in list)
+
 def eavesdrop(initV, cipherText):
-    t = 1
 
-def demo(secret, initV):
-    secret = int(hexlify(secret),16)
-    initV = int(hexlify(initV),16)
-    seed = secret^initV
+    dict = open('/usr/share/dict/words', 'r')
+    result = False
+    x = 1
+    att = 1
+    start_time = time.time()
+    while(x < 40 and result == False):
+        for item in itertools.product(chars, repeat = x):
+            password = ''.join(item)
 
+            try:
+                decrypted = decrypt(password, initV, cipherText)
+                print password + " --- attempt no: " + str(att)
+                if is_ascii(decrypted):
+                    out = ''.join(decrypted)
+                    out2 = out.split(" ")
 
-def xorS(s1,s2):
-    return ''.join(chr(ord(a)^ord(b)) for a,b in zip(s1,s2))
+                    bool = True
+                    for i in out2:
+                        if i not in dict:
+                            bool == False
+                    if bool == True:
+                        elapsed_time = time.time() - start_time
+                        print "possible message found: ", out
+                        print "message found in", elapsed_time, "seconds and", att, "attempts"
 
-secretkey = "secretkey"
-initV = urandom(len(secretkey))
+                        result = True
+                        break
 
-enc = encrypt(secretkey, initV)
-print enc
-print decrypt(secret, initV, enc)
+            except TypeError:
+                print("TypeError, skipping attempt no " + str(att) + "(" + password + ")")
+            # decrypted = ''.join(decrypt).strip().split(" ")
+
+            att += 1
+        x += 1
