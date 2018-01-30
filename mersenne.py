@@ -12,6 +12,7 @@ LOWER = 0x7fffffff
 m = list(range(0,N))
 mi = N
 
+#sets up list of all ascii letters
 chars = []
 for x in range(32, 127):
     chars.append(chr(x))
@@ -24,7 +25,7 @@ def setSeed(seed):
         m[i] = (69069 * m[i-1]) & 0xffffffff
     mi = N
 
-#nextInt function
+#nextInt function for stepping through the stream
 def nextInt():
     global mi
     if mi >= N:
@@ -42,12 +43,13 @@ def nextInt():
     y = y ^ (y >> 18)
     return y
 
+#encrypt function takes in a key and initialization vector
+# -> uses the XOR function to encrypt a chosen message
 def encrypt(secret, initV):
 
     secret = int(hexlify(secret),16)
     initV = int(hexlify(initV),16)
     seed = secret^initV
-    #print "Eseed: ", seed
 
     cipherText = []
     message = raw_input("Enter your message: ")
@@ -55,30 +57,32 @@ def encrypt(secret, initV):
     for char in message:
         char = int(hexlify(char),16)
         newint = nextInt()
-        #print char, newint, char^newint
         cipherText.append(char^newint)
     return cipherText
 
+#decrypt function takes in a key, initialization vector, and the resulting
+#ciphertext list from the encrypt function
+#-> uses the XOR function to decrypt a cyphertext given by the encrypt function
 def decrypt(secret, initV, cipherText):
 
     secret = int(hexlify(secret),16)
     initV = int(hexlify(initV),16)
     seed = secret^initV
-    #print "Dseed: ", seed
 
     newCipherText = []
     setSeed(seed)
     for char in cipherText:
         newint = nextInt()
-        #print char, newint, char^newint
         char = (char^newint)
         newCipherText.append(unhexlify(format(char, '02x')))
     return newCipherText
 
-#ascii helper function
+#ascii helper function (looked online for how to write this)
 def is_ascii(list):
     return all(ord(item) < 128 for item in list)
 
+#given an intialization vector and a ciphertext, brute forces possible secret
+#keys until it finds a possible decrypted english message
 def eavesdrop(initV, cipherText):
 
     dict = open('/usr/share/dict/words', 'r')
@@ -90,13 +94,17 @@ def eavesdrop(initV, cipherText):
         for item in itertools.product(chars, repeat = x):
             password = ''.join(item)
 
+            #my method caused some incorrect guesses to return errors, so
+            #I needed to format the function like this (try/except)
             try:
                 decrypted = decrypt(password, initV, cipherText)
                 print password + " --- attempt no: " + str(att)
+                #checks if the decrypted message is made up of ascii letters
                 if is_ascii(decrypted):
                     out = ''.join(decrypted)
                     out2 = out.split(" ")
 
+                    #checks if the concatenated letters make up english words
                     bool = True
                     for i in out2:
                         if i not in dict:
@@ -110,8 +118,7 @@ def eavesdrop(initV, cipherText):
                         break
 
             except TypeError:
-                print("TypeError, skipping attempt no " + str(att) + "(" + password + ")")
-            # decrypted = ''.join(decrypt).strip().split(" ")
+                print("Bad guess / TypeError, skipping attempt no " + str(att) + "(" + password + ")")
 
             att += 1
         x += 1
