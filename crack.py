@@ -98,4 +98,5 @@ def bruteP():
             print('password found in %s seconds and %d attempts' % (str(elapsed_time),att-1))
             break
 
+
 main()

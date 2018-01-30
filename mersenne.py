@@ -1,4 +1,6 @@
 #mersenne.py
+from binascii import hexlify,unhexlify
+from os import urandom
 
 #global vars
 N = 624
@@ -11,6 +13,7 @@ mi = N
 
 #setSeed function
 def setSeed(seed):
+    global mi
     m[0] = seed & 0x7fffffff
     for i in range(1,len(m)):
         m[i] = (69069 * m[i-1]) & 0xffffffff
@@ -35,6 +38,52 @@ def nextInt():
 
 def encrypt(secret, initV):
 
-    cipherText = ""
+    secret = int(hexlify(secret),16)
+    initV = int(hexlify(initV),16)
+    seed = secret^initV
+    #print "Eseed: ", seed
 
+    cipherText = []
+    message = raw_input("Enter your message: ")
+    setSeed(seed)
+    for char in message:
+        char = int(hexlify(char),16)
+        newint = nextInt()
+        #print char, newint, char^newint
+        cipherText.append(char^newint)
     return cipherText
+
+def decrypt(secret, initV, cipherText):
+
+    secret = int(hexlify(secret),16)
+    initV = int(hexlify(initV),16)
+    seed = secret^initV
+    #print "Dseed: ", seed
+
+    newCipherText = []
+    setSeed(seed)
+    for char in cipherText:
+        newint = nextInt()
+        #print char, newint, char^newint
+        char = (char^newint)
+        newCipherText.append(unhexlify(format(char, '02x')))
+    return newCipherText
+
+def eavesdrop(initV, cipherText):
+    t = 1
+
+def demo(secret, initV):
+    secret = int(hexlify(secret),16)
+    initV = int(hexlify(initV),16)
+    seed = secret^initV
+
+
+def xorS(s1,s2):
+    return ''.join(chr(ord(a)^ord(b)) for a,b in zip(s1,s2))
+
+secretkey = "secretkey"
+initV = urandom(len(secretkey))
+
+enc = encrypt(secretkey, initV)
+print enc
+print decrypt(secret, initV, enc)
