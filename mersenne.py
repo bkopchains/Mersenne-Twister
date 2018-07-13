@@ -75,6 +75,8 @@ def decrypt(secret, initV, cipherText):
         newint = nextInt()
         char = (char^newint)
         newCipherText.append(unhexlify(format(char, '02x')))
+        print char^newint, char, format(char, '02x'), unhexlify(format(char, '02x'))
+    print cipherText
     return newCipherText
 
 #ascii helper function (looked online for how to write this)
